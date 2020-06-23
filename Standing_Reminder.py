@@ -52,8 +52,9 @@ root.withdraw()
 
 tray = sg.SystemTray(menu= ['menu',['E&xit']], filename='Standing.png', tooltip=f'Standing Reminder')
 
-global time_left
+global time_left, non_idle_time
 time_left = 0
+non_idle_time = 0
 
 def main_func():
     with open('Config.ini', 'r') as configfile:
@@ -61,20 +62,24 @@ def main_func():
         wait_till_idle = int(Config.get('Main', 'wait_till_idle'))
         check_frequency = int(Config.get('Main', 'check_frequency'))
         reminder_time = int(Config.get('Main', 'reminder_time'))
+        past_reminder_frequency = int(Config.get('Main', 'past_reminder_frequency'))*60
+        required_idle_time = int(Config.get('Main', 'reminder_time'))
         non_idle_time = 0
         last_run = dt.datetime.now()
-    print(f'Standing Reminder set with a {check_frequency} minute frequency and a idle detection set to {wait_till_idle} minutes.')
+    logger.info(f'Standing Reminder set with a {check_frequency} minute frequency and a idle detection set to {wait_till_idle} minutes.')
+    tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {reminder_time} minutes.')
     while True:
         time.sleep(check_frequency * 60)
         idle_duration = get_idle_duration()
         if idle_duration > wait_till_idle * 60:
             non_idle_time = 0
-            print('Computer is Idle')
+            logger.info('Computer is Idle')
+            while idle_duration > wait_till_idle * 60:
+                time.sleep(check_frequency * 60)
         else:
             time_difference = dt.datetime.now() - last_run
-            print(time_difference)
-            if dt.datetime.now() - last_run >= wait_till_idle:
-                print('Computer was asleep\nResetting timer.')
+            if dt.datetime.now() - last_run >= dt.timedelta(minutes=wait_till_idle):
+                logger.info(f'Computer was asleep for more then {wait_till_idle} minutes.\nResetting timer.')
             non_idle_time += 1
             time_left = reminder_time - non_idle_time
             tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {time_left} minutes.')
@@ -82,9 +87,14 @@ def main_func():
         print(f'PC has been used for {non_idle_time} minute(s).')
         if non_idle_time >= reminder_time:
             #  Todo set showmessage to replace old one and switch to bubble message if possible.
-            # playsound('myfile.wav')
+            tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {reminder_time} minutes.')
+            playsound('juntos.mp3')
             tray.ShowMessage('Standing Reminder', f'PC has been used for {non_idle_time} minute(s).\nYou should stand up and stretch some.\n', time=10)
-            print('You should stand up and stretch some.\n')
+            logger.info('You should stand up and stretch some.\n')
+            while idle_duration < required_idle_time:
+                idle_duration = get_idle_duration()
+                tray.ShowMessage('Standing Reminder', f'PC has been used for {non_idle_time} minute(s).\nStop using the computer for {required_idle_time} minutes to reset this reminder.\n', time=10)
+                time.sleep(past_reminder_frequency)
             non_idle_time = 0
 
 
@@ -93,7 +103,7 @@ main_thread.start()
 
 while True:
     event = tray.Read()
-    print(event)
+    # print(event)
     if event == 'Exit':
         quit()
     elif event == '__DOUBLE_CLICKED__':
