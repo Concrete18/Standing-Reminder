@@ -19,8 +19,6 @@ def write_to_config():
         Config.write(configfile)
 
 Config.read('Config.ini')
-timer_length = Config.get('Main', 'timer_length')
-time_to_inactive = Config.get('Main', 'time_to_inactive')
 
 log_formatter = lg.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%m-%d-%Y %I:%M:%S %p')
 logFile = f'{os.getcwd()}\\Standing_Reminder.log'
@@ -54,13 +52,17 @@ root.withdraw()
 
 tray = sg.SystemTray(menu= ['menu',['E&xit']], filename='Standing.png', tooltip=f'Standing Reminder')
 
+global time_left
+time_left = 0
 
 def main_func():
-    wait_till_idle = 10 # in minutes
-    check_frequency = 1 # in minutes
-    reminder_time = 2
-    non_idle_time = 0
-    time_left = 0
+    with open('Config.ini', 'r') as configfile:
+        Config.read(configfile)
+        wait_till_idle = int(Config.get('Main', 'wait_till_idle'))
+        check_frequency = int(Config.get('Main', 'check_frequency'))
+        reminder_time = int(Config.get('Main', 'reminder_time'))
+        non_idle_time = 0
+        last_run = dt.datetime.now()
     print(f'Standing Reminder set with a {check_frequency} minute frequency and a idle detection set to {wait_till_idle} minutes.')
     while True:
         time.sleep(check_frequency * 60)
@@ -69,14 +71,16 @@ def main_func():
             non_idle_time = 0
             print('Computer is Idle')
         else:
+            time_difference = dt.datetime.now() - last_run
+            print(time_difference)
+            if dt.datetime.now() - last_run >= wait_till_idle:
+                print('Computer was asleep\nResetting timer.')
             non_idle_time += 1
             time_left = reminder_time - non_idle_time
             tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {time_left} minutes.')
+            last_run = dt.datetime.now()
         print(f'PC has been used for {non_idle_time} minute(s).')
         if non_idle_time >= reminder_time:
-            # Todo Add last wake check.
-            if True:
-                print('test')
             #  Todo set showmessage to replace old one and switch to bubble message if possible.
             # playsound('myfile.wav')
             tray.ShowMessage('Standing Reminder', f'PC has been used for {non_idle_time} minute(s).\nYou should stand up and stretch some.\n', time=10)
