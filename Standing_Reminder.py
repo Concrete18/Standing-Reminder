@@ -100,6 +100,7 @@ def main_func():
                     tray.ShowMessage('Standing Reminder', f'PC has been used for {non_idle_time} minute(s).\nStop using the computer for {required_idle_time} minutes to reset this reminder.\n', time=10)
                 time.sleep(past_reminder_frequency)
             logger.info(f'Inactivity Met - Resetting')
+            tray.Update(tooltip=f'Standing Reminder\nInactivity Met: Wait for next check cycle for new reminder.')
             non_idle_time = 0
 
 
