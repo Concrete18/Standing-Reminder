@@ -46,6 +46,7 @@ def get_idle_duration():
 root = tk.Tk()
 root.withdraw()
 
+tray = sg.SystemTray(menu= ['menu',['E&xit']], filename='Standing.png')
 
 class App:
 
@@ -63,49 +64,7 @@ class App:
         self.last_run = dt.datetime.now()
 
 
-    def main_func(self):
-        tray = sg.SystemTray(menu= ['menu',['E&xit']], filename='Standing.png', tooltip=f'{main.title}\nNext Reminder: {self.remind_time} minutes.')
-        self.last_run = dt.datetime.now()
-        print(f'remind_time set with a {self.check_freq} minute frequency and a idle detection set to {self.wait_idle} minutes.')
-        logger.info(f'remind_time set with a {self.check_freq} minute frequency and a idle detection set to {self.wait_idle} minutes.')
-        while True:  # Main Loop
-            time.sleep(self.check_freq * 60)
-            idle_duration = get_idle_duration()
-            idle_check(self, tray)
-            self.last_run = dt.datetime.now()
-            print(f'PC has been used for {self.non_idle_time} minute(s).           ', end="\r")
-            check_reminder()
-
-
-    def check_reminder(self, tray_obj):
-        if self.non_idle_time >= self.remind_time:
-            tray_obj.Update(tooltip=f'{self.title}\nNext Reminder: {self.remind_time} minutes.')
-        if self.notif_popup == 0:
-            playsound('juntos.mp3')
-        logger.info(f'PC has passed active time limit of {self.remind_time} minutes.')
-        while get_idle_duration() < self.req_idle_time:
-            if self.notif_popup == 1:
-                tray_obj.ShowMessage(self.title, f'PC has been used for {self.non_idle_time} minute(s).\nStop using the computer for {self.req_idle_time} minutes to reset this reminder.\n', time=10)
-            time.sleep(self.check_freq)
-            if sleep_check(self.last_run, self.wait_idle):
-                break
-            elif timer_reset is True:
-                break
-            print(self.last_run)
-            self.update_last_run
-        logger.info(f'Inactivity Met - Resetting')
-        tray_obj.Update(tooltip=f'{self.title}\nInactivity Met: Wait for next check cycle for new reminder.')
-        self.non_idle_time = 0
-
-
-    def sleep_check(self):
-        if dt.datetime.now() - self.last_run >= dt.timedelta(minutes=self.wait_idle):
-            result = True
-        self.update_last_run
-        return result
-
-
-    def idle_check(self, tray_obj):
+    def idle_check(self):
         if get_idle_duration() > self.wait_idle * 60:
             self.non_idle_time = 0
             logger.info('Computer is Idle')
@@ -118,7 +77,42 @@ class App:
                 self.non_idle_time = 0
                 logger.info(f'Computer was asleep for more then {self.wait_idle} minutes. Resetting timer.')
             self.time_left = self.remind_time - self.non_idle_time
-            tray_obj.Update(tooltip=f'Standing Reminder\nNext Reminder: {self.time_left} minutes.')
+            tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {self.time_left} minutes.')
+
+
+    def check_reminder(self):
+        if self.non_idle_time >= self.remind_time:
+            tray.Update(tooltip=f'{self.title}\nNext Reminder: {self.remind_time} minutes.')
+        if self.notif_popup == 0:
+            playsound('juntos.mp3')
+        logger.info(f'PC has passed active time limit of {self.remind_time} minutes.')
+        while get_idle_duration() < self.req_idle_time:
+            if self.notif_popup == 1:
+                tray.ShowMessage(self.title, f'PC has been used for {self.non_idle_time} minute(s).\nStop using the computer for {self.req_idle_time} minutes to reset this reminder.\n', time=10)
+            time.sleep(self.check_freq)
+            if dt.datetime.now() - self.last_run >= dt.timedelta(minutes=self.wait_idle):
+                self.last_run = dt.datetime.now()
+                break
+            elif self.timer_reset is True:
+                break
+            print(self.last_run)
+            self.update_last_run
+        logger.info(f'Inactivity Met - Resetting')
+        tray.Update(tooltip=f'{self.title}\nInactivity Met: Wait for next check cycle for new reminder.')
+        self.non_idle_time = 0
+
+
+    def main_func(self):
+        tray.Update(tooltip=f'{main.title}\nNext Reminder: {self.remind_time} minutes.')
+        self.last_run = dt.datetime.now()
+        print(f'{main.title} has started with a {self.check_freq} minute frequency and a idle detection set to {self.wait_idle} minutes.')
+        logger.info(f'remind_time set with a {self.check_freq} minute frequency and a idle detection set to {self.wait_idle} minutes.')
+        while True:  # Main Loop
+            time.sleep(self.check_freq * 60)
+            idle_check(self)
+            self.last_run = dt.datetime.now()
+            print(f'PC has been used for {self.non_idle_time} minute(s).           ', end="\r")
+            check_reminder(self)
 
 
 main = App()
@@ -136,4 +130,4 @@ while True:
     elif event == '__DOUBLE_CLICKED__':
         timer_reset = True
         non_idle_time = 0
-        tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {self.time_left} minutes.')
+        tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {main.time_left} minutes.')
