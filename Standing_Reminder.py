@@ -12,7 +12,6 @@ import threading
 import time
 import os
 
-
 log_formatter = lg.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%m-%d-%Y %I:%M:%S %p')
 logFile = f'{os.getcwd()}\\Standing_Reminder.log'
 
@@ -26,12 +25,7 @@ logger.addHandler(my_handler)
 
 root = tk.Tk()
 root.withdraw()
-
-tray = sg.SystemTray(menu= ['menu',['E&xit']], filename='Normal_Icon.png', tooltip=f'Standing Reminder')
-time_left = 0
-non_idle_time = 0
-stop_command = 0
-timer_reset = 0
+tray = sg.SystemTray(menu= ['menu',['E&xit']], filename='Media/Normal_Icon.png', tooltip=f'Standing Reminder')
 
 class LASTINPUTINFO(Structure):
     _fields_ = [('cbSize', c_uint), ('dwTime', c_uint)]
@@ -59,46 +53,49 @@ def main_func():
     past_reminder_frequency = int(Config.get('Main', 'past_reminder_frequency')) * 60
     required_idle_time = int(Config.get('Main', 'required_idle_time'))
     notification_popup = int(Config.get('Main', 'notification_popup'))
-    non_idle_time = 0
+    active_time = 0
     last_run = dt.datetime.now()
     print(f'Standing Reminder set with a {check_frequency} minute frequency and a idle detection set to {wait_till_idle} minutes.')
     logger.info(f'Standing Reminder set with a {check_frequency} minute frequency and a idle detection set to {wait_till_idle} minutes.')
     tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {reminder_time} minutes.')
+    # Main Loop
     while True:
         time.sleep(check_frequency * 60)
         idle_duration = get_idle_duration()
         if idle_duration > wait_till_idle * 60:
-            tray.update(filename='Passed_Reminder.png')
-            non_idle_time = 0
+            tray.update(filename='Media/Passed_Reminder.png')
+            active_time = 0
             logger.info('Computer is Idle')
             while idle_duration > wait_till_idle * 60:
                 idle_duration = get_idle_duration()
                 time.sleep(check_frequency * 60)
             logger.info('Computer is no longer Idle')
+        # Sleep Detection
         else:
-            non_idle_time += 1
+            active_time += 1
             if dt.datetime.now() - last_run >= dt.timedelta(minutes=wait_till_idle):
-                tray.update(filename='Passed_Reminder.png')
-                non_idle_time = 0
+                tray.update(filename='Media/Passed_Reminder.png')
+                active_time = 0
                 logger.info(f'Computer was asleep for more then {wait_till_idle} minutes. Resetting timer.')
-            time_left = reminder_time - non_idle_time
+            time_left = reminder_time - active_time
             tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {time_left} minutes.')
         last_run = dt.datetime.now()
-        print(f'PC has been used for {non_idle_time} minute(s).    ', end="\r")
-        if non_idle_time >= reminder_time:
-            tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {reminder_time} minutes.', filename='Passed_Reminder.png')
+        print(f'PC has been used for {active_time} minute(s).    ', end="\r")
+        # Check if passed reminder time.
+        if active_time >= reminder_time:
+            tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {reminder_time} minutes.', filename='Media/Passed_Reminder.png')
             if notification_popup == 0:
-                playsound('juntos.mp3')
+                playsound('Media/juntos.mp3')
             logger.info(f'PC has passed active time limit of {reminder_time} minutes.')
-            while idle_duration < required_idle_time or non_idle_time > reminder_time:
+            while idle_duration < required_idle_time or active_time > reminder_time:
                 idle_duration = get_idle_duration()
                 if notification_popup == 1:
-                    tray.update(filename='Passed_Reminder.png')
-                    tray.ShowMessage('Standing Reminder', f'PC has been used for {non_idle_time} minute(s).\nStop using the computer for {required_idle_time} minutes to reset this reminder.\n', time=10)
+                    tray.update(filename='Media/Passed_Reminder.png',tooltip='Standing Reminder\nStand up and stretch')
+                    tray.ShowMessage('Standing Reminder', f'PC has been used for {active_time} minute(s).\nStop using the computer for {required_idle_time} minutes to reset this reminder.\n', time=10)
                 time.sleep(past_reminder_frequency)
             logger.info(f'Inactivity Met - Resetting')
-            tray.Update(tooltip=f'Standing Reminder\nInactivity Met: Wait for next check cycle for new reminder.', filename='Normal_Icon.png')
-            non_idle_time = 0
+            tray.Update(tooltip=f'Standing Reminder\nInactivity Met: Wait for next check cycle for new reminder.', filename='Media/Normal_Icon.png')
+            active_time = 0
 
 
 main_thread = threading.Thread(target=main_func, daemon=True)
@@ -106,8 +103,6 @@ main_thread.start()
 
 while True:
     event = tray.Read()
-    print(event)
+    # print(event)
     if event == 'Exit':
         quit()
-        tray.update(filename='Passed_Reminder.png')
-        tray.update(filename='Normal_Icon.png')
