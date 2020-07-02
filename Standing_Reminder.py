@@ -102,32 +102,26 @@ class App:
         self.non_idle_time = 0
 
 
-    def main_func(self):
+    def run(self):
         tray.Update(tooltip=f'{main.title}\nNext Reminder: {self.remind_time} minutes.')
         self.last_run = dt.datetime.now()
         print(f'{main.title} has started with a {self.check_freq} minute frequency and a idle detection set to {self.wait_idle} minutes.')
         logger.info(f'remind_time set with a {self.check_freq} minute frequency and a idle detection set to {self.wait_idle} minutes.')
         while True:  # Main Loop
             time.sleep(self.check_freq * 60)
-            idle_check(self)
+            self.idle_check
             self.last_run = dt.datetime.now()
             print(f'PC has been used for {self.non_idle_time} minute(s).           ', end="\r")
-            check_reminder(self)
+            self.check_reminder
 
 
-main = App()
-
-main_thread = threading.Thread(target=main.main_func, daemon=True)
-main_thread.start()
+if __name__ == '__main__':
+    main = App()
+    main_thread = threading.Thread(target=main.run, daemon=True)
+    main_thread.start()
 
 while True:
     event = tray.Read()
     # print(event)
     if event == 'Exit':
         quit()
-    # elif event == '__ACTIVATED__':
-    #     tray.Update(icon='PH')
-    elif event == '__DOUBLE_CLICKED__':
-        timer_reset = True
-        non_idle_time = 0
-        tray.Update(tooltip=f'Standing Reminder\nNext Reminder: {main.time_left} minutes.')
