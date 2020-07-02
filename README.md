@@ -10,6 +10,7 @@ The timer will also reset upon detecting a time gap in runs due to the computer 
 
 ## Future Features
 * Tap Tray Icon to Toggle
+* Gamepad Detection
 
 ## Config
 
