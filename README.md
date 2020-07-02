@@ -13,7 +13,6 @@ The timer will also reset upon detecting a time gap in runs due to the computer 
 * Gamepad Detection
 
 ## Config
-
 ```ini
 [Main]
 check_frequency = 1 # Frequency of checks in minutes.

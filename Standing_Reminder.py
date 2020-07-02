@@ -17,10 +17,10 @@ logFile = f'{os.getcwd()}\\script.log'
 
 my_handler = RotatingFileHandler(logFile, maxBytes=5*1024*1024, backupCount=2)
 my_handler.setFormatter(log_formatter)
-my_handler.setLevel(lg.INFO)
+my_handler.setLevel(lg.DEBUG)
 
 logger = lg.getLogger(__name__)
-logger.setLevel(lg.INFO)
+logger.setLevel(lg.DEBUG)
 logger.addHandler(my_handler)
 
 class LASTINPUTINFO(Structure):
@@ -58,6 +58,7 @@ class App:
         self.notif_popup = int(Config.get('Main', 'notification_popup'))
         self.time_left = 0
         self.active_time = 0
+        self.early_cancel = 0
         self.timer_reset = False
         self.last_run = dt.datetime.now()
 
@@ -65,23 +66,22 @@ class App:
     def idle_check(self):
         if get_idle_duration() > self.wait_idle * 60:
             self.active_time = 0
-            logger.info('Computer is Idle')
+            logger.debug('Computer is Idle')
             tray.Update(tooltip=f'{self.title}\nComputer is Idle.', filename='Media/Idle_ Icon.png')
             while get_idle_duration() > self.wait_idle * 60:
                 time.sleep(self.check_freq * 60)
             tray.update(filename='Media/Normal_Icon.png')
-            logger.info('Computer is no longer Idle')
+            logger.debug('Computer is no longer Idle')
         else:
             self.active_time += 1
             if dt.datetime.now() - self.last_run >= dt.timedelta(minutes=self.wait_idle):
                 tray.update(filename='Media/Normal_Icon.png')
                 self.active_time = 0
-                tray.ShowMessage(f'{self.title}', f'Computer was asleep for more then {self.wait_idle} minutes.\
-                    Resetting timer.', time=10)
-                logger.info(f'Computer was asleep for more then {self.wait_idle} minutes. Resetting timer.')
+                tray.ShowMessage(f'{self.title}', f'Computer was asleep for more then {self.wait_idle} minutes. Resetting timer.', time=10)
+                logger.debug(f'Computer was asleep for more then {self.wait_idle} minutes. Resetting timer.')
             self.time_left = self.remind_time - self.active_time
             tray.Update(tooltip=f'{self.title}\nNext Reminder: {self.time_left} minutes.',\
-                filename='Media/Normal_Icon.png')
+            filename='Media/Normal_Icon.png')
 
 
     def check_reminder(self):
@@ -90,28 +90,28 @@ class App:
             tray.update(tooltip=f'{self.title}\nStand up and stretch', filename='Media/Passed_Reminder.png')
             if self.notif_popup == 0:
                 playsound('Media/juntos.mp3')
-            logger.info(f'PC has passed active time limit of {self.remind_time} minutes.')
+            logger.debug(f'PC has passed active time limit of {self.remind_time} minutes.')
             while get_idle_duration() < self.req_idle_time:
+                if self.early_cancel == 1:
+                    self.early_cancel = 0
+                    break
                 if self.notif_popup == 1:
-                    tray.ShowMessage(self.title, f'PC has been used for {self.active_time} minute(s).\n\
-                        Stop using the computer for {self.req_idle_time} minutes to reset this reminder.\n')
+                    tray.ShowMessage(self.title, f'PC has been used for {self.active_time} minute(s).\nStop using the computer for {self.req_idle_time} minutes to reset this reminder.\nTap Icon to Cancel Early.')
                 time.sleep(self.check_freq * 60)
                 if dt.datetime.now() - self.last_run >= dt.timedelta(minutes=self.wait_idle):
                     self.last_run = dt.datetime.now()
                     break
-            logger.info(f'Inactivity Met - Resetting')
+            logger.debug(f'Inactivity Met - Resetting')
             tray.Update(tooltip=f'{self.title}\nInactivity Met: Resetting within 1 minute.',\
-                filename='Media/Normal_Icon.png')
+            filename='Media/Normal_Icon.png')
             self.active_time = 0
 
 
     def run(self):
         tray.Update(tooltip=f'{main.title}\nNext Reminder: {self.remind_time} minutes.')
         self.last_run = dt.datetime.now()
-        print(f'{main.title} has started with a {self.check_freq} minute frequency and a idle detection set to\
-            {self.wait_idle} minutes.')
-        logger.info(f'{self.title} set with a {self.check_freq} minute frequency and a idle detection set to\
-            {self.wait_idle} minutes.')
+        print(f'{main.title} has started with a {self.check_freq} minute frequency and a idle detection set to {self.wait_idle} minutes.')
+        logger.debug(f'{self.title} set with a {self.check_freq} minute frequency and a idle detection set to {self.wait_idle} minutes.')
         while True:
             time.sleep(self.check_freq * 60)
             self.idle_check()
@@ -129,3 +129,6 @@ while True:
     # print(event)
     if event == 'Exit':
         quit()
+    elif event == '__ACTIVATED__' or '__MESSAGE_CLICKED__':
+        main.early_cancel = 1
+        tray.Update(tooltip=f'{main.title}\nNext Reminder: {main.remind_time} minutes.', filename='Media/Normal_Icon.png')
