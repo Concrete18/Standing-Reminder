@@ -69,6 +69,7 @@ class App:
             logger.debug('Computer is Idle')
             tray.Update(tooltip=f'{self.title}\nComputer is Idle.', filename='Media/Idle_ Icon.png')
             while get_idle_duration() > self.wait_idle * 60:
+                self.last_run = dt.datetime.now()
                 time.sleep(self.check_freq * 60)
             tray.update(filename='Media/Normal_Icon.png')
             logger.debug('Computer is no longer Idle')
@@ -114,6 +115,7 @@ class App:
         logger.debug(f'{self.title} set with a {self.check_freq} minute frequency and a idle detection set to {self.wait_idle} minutes.')
         while True:
             time.sleep(self.check_freq * 60)
+            self.last_run = dt.datetime.now()
             self.idle_check()
             print(f'PC has been used for {self.active_time} minute(s).       ', end="\r")
             self.check_reminder()
