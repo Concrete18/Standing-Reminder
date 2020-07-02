@@ -34,7 +34,6 @@ def get_idle_duration():
     millis = windll.kernel32.GetTickCount() - lastInputInfo.dwTime
     return millis / 1000.0
 
-Config = configparser.RawConfigParser()
 
 Config = configparser.RawConfigParser()
 
