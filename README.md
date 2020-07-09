@@ -7,9 +7,9 @@ The timer will also reset upon detecting a time gap in runs due to the computer 
 ## Features
 * Tray Icon - Hover over the icon to see your next reminder time and a few other statuses.
 * Timer Auto-reset on inactivity and wake from sleep.
+* Tap Tray Icon to reset timer manually.
 
 ## Future Features
-* Tap Tray Icon to Toggle
 * Gamepad Detection
 
 ## Config
