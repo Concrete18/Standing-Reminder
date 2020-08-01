@@ -95,6 +95,7 @@ class App:
             while get_idle_duration() < self.req_idle_time:
                 if self.early_cancel == 1:
                     self.early_cancel = 0
+                    # Check on tray.update response after manual loop break.
                     break
                 if self.notif_popup == 1:
                     tray.ShowMessage(self.title, f'PC has been used for {self.active_time} minute(s).\nStop using the computer for {self.req_idle_time} minutes to reset this reminder.\nTap Icon to Cancel Early.')
