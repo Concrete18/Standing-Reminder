@@ -1,15 +1,15 @@
 # Standing Reminder
 This app allows you to set a reminder to stop using your computer after a configurable time period.
-It is intelligent enought to detect inactivity after the reminder has gone off allowing you to simply walk away for your chosen time.
+It is intelligent enough to detect inactivity after the reminder has gone off allowing you to simply walk away for your chosen time.
 It will also reset the timer early if it detects inactivity past a configurable threshold.
 The timer will also reset upon detecting a time gap in runs due to the computer going to sleep and then waking up a long enough time later.
 
 ## Features
 * Tray Icon - Hover over the icon to see your next reminder time and a few other statuses.
 * Timer Auto-reset on inactivity and wake from sleep.
+* Tap Tray Icon to reset timer manually.
 
 ## Future Features
-* Tap Tray Icon to Toggle
 * Gamepad Detection
 
 ## Config
