@@ -7,27 +7,26 @@ The timer will also reset upon detecting a time gap in runs due to the computer 
 
 ## Features
 
-* Tray Icon - Hover over the icon to see your next reminder time and a few other statuses.
-* Timer Auto-reset on inactivity and wake from sleep.
-* Tap Tray Icon to reset timer manually.
+- Tray Icon - Hover over the icon to see your next reminder time and a few other statuses.
+- Timer Auto-reset on inactivity and wake from sleep.
+- Tap Tray Icon to reset timer manually.
 
 ## Future Features
 
-* Game pad Detection
-* Tray right click reset
+- Game pad Detection
+- Tray right click reset
 
 ## Config
 
 ```json
 {
-    "config":
-    {
-        "check_frequency": 1,
-        "wait_till_idle": 10,
-        "reminder_time": 50,
-        "required_idle_time": 5,
-        "notification_popup": 1
-    }
+  "config": {
+    "check_frequency": 1,
+    "wait_till_idle": 10,
+    "reminder_time": 50,
+    "required_idle_time": 5,
+    "notification_popup": 1
+  }
 }
 ```
 
@@ -38,5 +37,5 @@ Run "pip install -r requirements.txt"
 
 ### Credits
 
-* [Tray Icon](https://icons8.com/icons/set/standing-man--v1)
-* [Notification Sound](https://notificationsounds.com/message-tones/juntos-607)
+- [Tray Icon](https://icons8.com/icons/set/standing-man--v1)
+- [Notification Sound](https://notificationsounds.com/message-tones/juntos-607)

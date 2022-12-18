@@ -3,7 +3,7 @@
     {
         "check_frequency": 1,
         "wait_till_idle": 10,
-        "reminder_time": 50,
+        "reminder_time": 45,
         "required_idle_time": 5,
         "notification_popup": 1
     }
